@@ -4,7 +4,6 @@ from qiskit_algorithms import Grover, AmplificationProblem
 
 import utils
 
-
 def main():
     boolean_expr = '(q0 & q1) | (~q2 & q3)' # q0 top-most => lsb
     oracle = PhaseOracle(boolean_expr)
@@ -39,17 +38,25 @@ def main():
 
     utils.draw(problem.grover_operator.decompose(), 'amp-problem-op')
 
-    optminal_num_iterations = Grover.optimal_num_iterations(7, 4)
-    grover = Grover(
-        iterations=optminal_num_iterations,
+    optimal_num_iterations = Grover.optimal_num_iterations(7, 4)
+    
+    grover_ideal = Grover(
+        iterations=optimal_num_iterations,
         growth_rate=None,
         sample_from_iterations=False,
         sampler=Sampler() # ideal
     )
-    result = grover.amplify(problem)
-    print(result.circuit_results)
+    result_ideal = grover_ideal.amplify(problem).circuit_results[0]
+    utils.plot(result_ideal, "grover-ideal")
 
-    utils.plot(result.circuit_results[0], "grover-ideal")
+    grover_shots = Grover(
+        iterations=optimal_num_iterations,
+        growth_rate=None,
+        sample_from_iterations=None,
+        sampler=Sampler(options={"shots": 512, "seed": 123})
+    )
+    result_shots = grover_shots.amplify(problem).circuit_results[0]
+    utils.plot(result_shots, "grover-shots-optimal")
 
 
 if __name__ == '__main__':
