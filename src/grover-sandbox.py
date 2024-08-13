@@ -4,41 +4,53 @@ from qiskit_algorithms import Grover, AmplificationProblem
 
 import utils
 
+def phase_oracle_solutions(oracle: PhaseOracle):
+    # generate all binaries from 0 to num_qubits
+    num_qubits = oracle.num_qubits
+    bitstrings = [
+        bin(i)[2:].zfill(num_qubits)
+        for i in range(2 ** num_qubits)
+    ]
+    # print(bitstrings)
+
+    truth_table = {
+        i: oracle.evaluate_bitstring(i)
+        for i in bitstrings
+    }
+    # print(truth_table)
+
+    good_states = [
+        k
+        for k, v in truth_table.items()
+        if v is True
+    ]
+    # print(good_states)
+
+    return good_states
+
+
+def test_phase_oracle_solutions():
+    boolean_expr = '(q0 & q1) | (~q2 & q3)' # q0 top-most => lsb
+    oracle = PhaseOracle(boolean_expr)
+    good_states = phase_oracle_solutions(oracle)
+    print(good_states)
+
+
 def main():
     boolean_expr = '(q0 & q1) | (~q2 & q3)' # q0 top-most => lsb
     oracle = PhaseOracle(boolean_expr)
     oracle.barrier()
 
-    bitstrings = [
-        f'{i:04b}'
-        for i in range(2 ** 4)
-    ]
-    # print(bitstrings)
-
-    results = {
-        i: oracle.evaluate_bitstring(i)
-        for i in bitstrings
-    }
-    # print(results)
-
-    good_states = [
-        k
-        for k, v in results.items()
-        if v is True
-    ]
-    # print(good_states)
-
-    def is_good_state(state: str) -> bool:
-        return state in good_states
-
     problem = AmplificationProblem(
-        oracle,
-        is_good_state=is_good_state
+        oracle
     )
 
     utils.draw(problem.grover_operator.decompose(), 'amp-problem-op')
 
-    optimal_num_iterations = Grover.optimal_num_iterations(7, 4)
+    num_known_solutions = 7
+    optimal_num_iterations = Grover.optimal_num_iterations(
+        num_solutions=num_known_solutions,
+        num_qubits=oracle.num_qubits)
     
     grover_ideal = Grover(
         iterations=optimal_num_iterations,
@@ -61,3 +73,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # test_phase_oracle_solutions()
+    pass
