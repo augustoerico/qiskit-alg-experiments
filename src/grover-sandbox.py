@@ -1,8 +1,17 @@
 from qiskit.circuit.library import PhaseOracle
-from qiskit.primitives import Sampler
 from qiskit_algorithms import Grover, AmplificationProblem
 
+from qiskit import QuantumCircuit, transpile
+
+from qiskit_ibm_runtime.ibm_backend import Backend
+
+from qiskit_ibm_runtime.fake_provider.backends import FakeTorontoV2
+
 import utils
+
+from qiskit_aer import AerSimulator
+
+from qiskit.result.result import Result
 
 def phase_oracle_solutions(oracle: PhaseOracle):
     # generate all binaries from 0 to num_qubits
@@ -36,42 +45,82 @@ def test_phase_oracle_solutions():
     print(good_states)
 
 
-def main():
-    boolean_expr = '(q0 & q1) | (~q2 & q3)' # q0 top-most => lsb
-    oracle = PhaseOracle(boolean_expr)
-    oracle.barrier()
-
-    problem = AmplificationProblem(
-        oracle
-    )
-
-    utils.draw(problem.grover_operator.decompose(), 'amp-problem-op')
+def get_circuit() -> QuantumCircuit:
+    """
+    Returns the quantum circuit target for the experiment
+    """
+    boolean_expr = '(q0 & q1) | (~q2 & q3)' # q0 top-most => least significant qubit (lsq)
+    oracle: QuantumCircuit = PhaseOracle(boolean_expr)
+    problem = AmplificationProblem(oracle)
 
     num_known_solutions = 7
     optimal_num_iterations = Grover.optimal_num_iterations(
         num_solutions=num_known_solutions,
         num_qubits=oracle.num_qubits)
-    
-    grover_ideal = Grover(
-        iterations=optimal_num_iterations,
-        growth_rate=None,
-        sample_from_iterations=False,
-        sampler=Sampler() # ideal
-    )
-    result_ideal = grover_ideal.amplify(problem).circuit_results[0]
-    utils.plot(result_ideal, "grover-ideal")
 
-    grover_shots = Grover(
-        iterations=optimal_num_iterations,
-        growth_rate=None,
-        sample_from_iterations=None,
-        sampler=Sampler(options={"shots": 512, "seed": 123})
-    )
-    result_shots = grover_shots.amplify(problem).circuit_results[0]
-    utils.plot(result_shots, "grover-shots-optimal")
+    grover = Grover(iterations=optimal_num_iterations)
+
+    return grover.construct_circuit(problem, measurement=True)
+
+
+def run_experiment(
+        experiment_id: str,
+        circuit: QuantumCircuit,
+        transpiler_options: dict):
+    backend: Backend = transpiler_options['backend']
+    optimization_level = transpiler_options.get('optimization_level')
+
+    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=optimization_level)
+
+    result: Result = backend \
+        .run(transpiled_circuit, shots=4096) \
+        .result()
+    print(type(result))
+    print(result)
+
+    utils.draw(transpiled_circuit, experiment_id)
+    utils.plot(result.get_counts(), experiment_id)
+    utils.write_results_json(result.get_counts(), experiment_id)
+
+    return result
+
+
+def main_experiments():
+    circuit = get_circuit()
+    
+    ideal_experiment = {
+        'experiment_id': 'ideal',
+        'circuit': circuit,
+        'transpiler_options': {
+            'backend': AerSimulator()
+        }
+    }
+    run_experiment(**ideal_experiment)
+
+    noisy_experiment_optimization_0 = {
+        'experiment_id': 'noisy-opt0',
+        'circuit': circuit,
+        'transpiler_options': {
+            'backend': FakeTorontoV2(),
+            'optimization_level': 0
+        }
+    }
+    run_experiment(**noisy_experiment_optimization_0)
+
+    noisy_experiment_optimization_3 = {
+        'experiment_id': 'noisy-opt3',
+        'circuit': circuit,
+        'transpiler_options': {
+            'backend': FakeTorontoV2(),
+            'optimization_level': 3
+        }
+    }
+    run_experiment(**noisy_experiment_optimization_3)
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     # test_phase_oracle_solutions()
+    # main_with_noise()
+    main_experiments()
     pass
