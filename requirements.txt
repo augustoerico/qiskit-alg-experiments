@@ -17,6 +17,7 @@ numpy==2.0.1
 packaging==24.1
 pbr==6.0.0
 pillow==10.4.0
+psutil==6.0.0
 pycparser==2.22
 pydantic==2.8.2
 pydantic_core==2.20.1
@@ -26,6 +27,7 @@ pyparsing==3.1.2
 pyspnego==0.11.1
 python-dateutil==2.9.0.post0
 qiskit==1.1.2
+qiskit-aer==0.14.2
 qiskit-algorithms==0.3.0
 qiskit-ibm-runtime==0.27.1
 requests==2.32.3

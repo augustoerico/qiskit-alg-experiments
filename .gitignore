@@ -130,4 +130,6 @@ venv.bak/
 
 # project-specific artifacts:
 #   - circuit and histograms images
+#   - result counts JSON
 *.png
+*.json
