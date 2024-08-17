@@ -75,8 +75,6 @@ def run_experiment(
     result: Result = backend \
         .run(transpiled_circuit, shots=4096) \
         .result()
-    print(type(result))
-    print(result)
 
     utils.draw(transpiled_circuit, experiment_id)
     utils.plot(result.get_counts(), experiment_id)
