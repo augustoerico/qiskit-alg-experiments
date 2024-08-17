@@ -2,8 +2,10 @@
 Helper functions
 """
 import simplejson
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
+from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from qiskit.visualization import plot_histogram
+from qiskit_ibm_runtime.ibm_backend import Backend
 
 
 def draw(circuit: QuantumCircuit, file_name: str):
@@ -13,6 +15,7 @@ def draw(circuit: QuantumCircuit, file_name: str):
     params = {
         'initial_state': True,
         'output': "mpl",
+        'idle_wires': False,
         'filename': f'{file_name}.circuit.png',
     }
     circuit.draw(**params)
@@ -31,10 +34,22 @@ def plot(counts: dict, file_name: str, legend = None):
     )
 
 
-def write_results_json(counts: dict, script_name: str, sufiix: str):
+def write_results_json(counts: dict, file_name: str):
     """
     write counts into file as JSON
     """
-    file_name = f'{script_name}.counts{sufiix}.txt'
+    file_name = f'{file_name}.counts.json'
     with open(file_name, 'w', encoding='utf-8') as file:
         simplejson.dump(counts, fp=file, indent=4, sort_keys=True)
+
+def simulate(
+        circuit: QuantumCircuit,
+        backend: Backend,
+        shots = 1024):
+    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=2)
+    draw(transpiled_circuit, 'transpiled')
+    counts = backend \
+        .run(transpiled_circuit, shots=shots) \
+        .result() \
+        .get_counts()
+    return counts
