@@ -5,7 +5,7 @@ from qiskit import QuantumCircuit, transpile
 
 from qiskit_ibm_runtime.ibm_backend import Backend
 
-from qiskit_ibm_runtime.fake_provider.backends import FakeTorontoV2
+from qiskit_ibm_runtime.fake_provider.backends import FakeTorino
 
 import utils
 
@@ -39,7 +39,7 @@ def phase_oracle_solutions(oracle: PhaseOracle):
 
 
 def test_phase_oracle_solutions():
-    boolean_expr = '~q0 & ~q1 & ~q2 & q3' # q0 top-most => lsb
+    boolean_expr = 'q0 & ~q1 & ~q2 & q3' # q0 top-most => lsb
     oracle = PhaseOracle(boolean_expr)
     good_states = phase_oracle_solutions(oracle)
     print(good_states)
@@ -49,11 +49,11 @@ def get_circuit() -> QuantumCircuit:
     """
     Returns the quantum circuit target for the experiment
     """
-    boolean_expr = '~q0 & ~q1 & ~q2 & q3' # q0 top-most => least significant qubit (lsq)
+    boolean_expr = 'q0 & ~q1 & ~q2 & q3' # q0 top-most => least significant qubit (lsq)
     oracle: QuantumCircuit = PhaseOracle(boolean_expr)
     problem = AmplificationProblem(oracle)
 
-    num_known_solutions = 1
+    num_known_solutions = 2
     optimal_num_iterations = Grover.optimal_num_iterations(
         num_solutions=num_known_solutions,
         num_qubits=oracle.num_qubits)
@@ -84,7 +84,7 @@ def run_experiment(
 
 def main_experiments():
     circuit = get_circuit()
-    backend = FakeTorontoV2()
+    backend = FakeTorino()
 
     simulator = AerSimulator.from_backend(backend)
     simulator.set_options(method='statevector', noise_model=None)
