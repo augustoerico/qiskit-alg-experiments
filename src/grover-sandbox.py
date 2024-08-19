@@ -39,7 +39,7 @@ def phase_oracle_solutions(oracle: PhaseOracle):
 
 
 def test_phase_oracle_solutions():
-    boolean_expr = 'q0 & ~q1 & ~q2 & q3' # q0 top-most => lsb
+    boolean_expr = '(q0 & ~q1 & ~q2 & q3) | (~q0 & q1 & q2 & ~q3)' # q0 top-most => lsb
     oracle = PhaseOracle(boolean_expr)
     good_states = phase_oracle_solutions(oracle)
     print(good_states)
@@ -49,7 +49,7 @@ def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     """
     Returns the quantum circuit target for the experiment
     """
-    boolean_expr = 'q0 & ~q1 & ~q2 & q3' # q0 top-most => least significant qubit (lsq)
+    boolean_expr = '(q0 & ~q1 & ~q2 & q3) | (~q0 & q1 & q2 & ~q3)' # q0 top-most => least significant qubit (lsq)
     oracle: QuantumCircuit = PhaseOracle(boolean_expr)
     problem = AmplificationProblem(oracle)
 
