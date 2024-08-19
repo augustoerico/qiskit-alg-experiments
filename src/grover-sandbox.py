@@ -45,7 +45,7 @@ def test_phase_oracle_solutions():
     print(good_states)
 
 
-def get_circuit() -> QuantumCircuit:
+def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     """
     Returns the quantum circuit target for the experiment
     """
@@ -58,24 +58,25 @@ def get_circuit() -> QuantumCircuit:
         num_solutions=num_known_solutions,
         num_qubits=oracle.num_qubits)
 
-    grover = Grover(iterations=optimal_num_iterations)
-
-    return grover.construct_circuit(problem, measurement=True)
+    grover_circuit = Grover(iterations=optimal_num_iterations) \
+        .construct_circuit(problem, measurement=True)
+    
+    transpiled_circuit = transpile(
+        grover_circuit,backend=backend, optimization_level=3)
+    utils.draw(transpiled_circuit, f'grover.{backend.name}')
+    
+    return transpiled_circuit
 
 
 def run_experiment(
         experiment_id: str,
-        circuit: QuantumCircuit,
-        transpiler_options: dict):
-    backend: Backend = transpiler_options['backend']
-
-    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=3)
+        backend: Backend,
+        transpiled_circuit: QuantumCircuit):
 
     result: Result = backend \
         .run(transpiled_circuit, shots=4096) \
         .result()
 
-    utils.draw(transpiled_circuit, experiment_id)
     utils.plot(result.get_counts(), experiment_id)
     utils.write_results_json(result.get_counts(), experiment_id)
 
@@ -83,26 +84,22 @@ def run_experiment(
 
 
 def main_experiments():
-    circuit = get_circuit()
     backend = FakeTorino()
+    transpiled_circuit = get_transpiled_grover_circuit(backend)
 
     simulator = AerSimulator.from_backend(backend)
     simulator.set_options(method='statevector', noise_model=None)
     ideal_experiment = {
         'experiment_id': 'ideal',
-        'circuit': circuit,
-        'transpiler_options': {
-            'backend': simulator
-        }
+        'transpiled_circuit': transpiled_circuit,
+        'backend': simulator
     }
     run_experiment(**ideal_experiment)
 
     noisy_experiment = {
         'experiment_id': 'noisy',
-        'circuit': circuit,
-        'transpiler_options': {
-            'backend': backend
-        }
+        'transpiled_circuit': transpiled_circuit,
+        'backend': backend
     }
     run_experiment(**noisy_experiment)
 
