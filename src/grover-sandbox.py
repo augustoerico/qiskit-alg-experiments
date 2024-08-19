@@ -53,7 +53,7 @@ def get_circuit() -> QuantumCircuit:
     oracle: QuantumCircuit = PhaseOracle(boolean_expr)
     problem = AmplificationProblem(oracle)
 
-    num_known_solutions = 7
+    num_known_solutions = 1
     optimal_num_iterations = Grover.optimal_num_iterations(
         num_solutions=num_known_solutions,
         num_qubits=oracle.num_qubits)
@@ -68,9 +68,8 @@ def run_experiment(
         circuit: QuantumCircuit,
         transpiler_options: dict):
     backend: Backend = transpiler_options['backend']
-    optimization_level = transpiler_options.get('optimization_level')
 
-    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=optimization_level)
+    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=3)
 
     result: Result = backend \
         .run(transpiled_circuit, shots=4096) \
@@ -98,25 +97,14 @@ def main_experiments():
     }
     run_experiment(**ideal_experiment)
 
-    noisy_experiment_optimization_0 = {
-        'experiment_id': 'noisy-opt0',
+    noisy_experiment = {
+        'experiment_id': 'noisy',
         'circuit': circuit,
         'transpiler_options': {
-            'backend': backend,
-            'optimization_level': 0
+            'backend': backend
         }
     }
-    run_experiment(**noisy_experiment_optimization_0)
-
-    noisy_experiment_optimization_3 = {
-        'experiment_id': 'noisy-opt3',
-        'circuit': circuit,
-        'transpiler_options': {
-            'backend': backend,
-            'optimization_level': 3
-        }
-    }
-    run_experiment(**noisy_experiment_optimization_3)
+    run_experiment(**noisy_experiment)
 
 
 if __name__ == '__main__':
