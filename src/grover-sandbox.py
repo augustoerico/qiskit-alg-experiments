@@ -48,6 +48,7 @@ def test_phase_oracle_solutions():
     print(good_states)
 
 
+@utils.print_exec_time
 def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     """
     Returns the quantum circuit target for the experiment
@@ -71,6 +72,7 @@ def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     return transpiled_circuit
 
 
+@utils.print_exec_time
 def run_experiment(
         experiment_id: str,
         backend: Backend,
@@ -106,7 +108,7 @@ def main_experiments():
     }
     run_experiment(**noisy_experiment)
 
-
+@utils.print_exec_time
 def run_testing_experiments():
     """
     Runs the experiments in 2 environments and performs
