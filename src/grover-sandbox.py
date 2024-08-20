@@ -13,7 +13,9 @@ from qiskit_aer import AerSimulator
 
 from qiskit.result.result import Result
 
-from scipy.stats import ks_2samp
+from scipy.stats import ks_2samp, mannwhitneyu
+
+from numpy import array
 
 
 def phase_oracle_solutions(oracle: PhaseOracle):
@@ -145,14 +147,17 @@ def run_testing_experiments():
     for o in observed_outputs:
         ideal_experiment_data.append(ideal_result_counts.get(o, 0))
         noisy_experiment_data.append(noisy_result_counts.get(o, 0))
+    ideal_experiment_data = array(ideal_experiment_data)
+    noisy_experiment_data = array(noisy_experiment_data)
 
     # H0: the 2 samples are drawn from the same distribution
     ks_result = ks_2samp(ideal_experiment_data, noisy_experiment_data)
     print(type(ks_result))
-    print(ks_result.statistic)
     print(ks_result.pvalue) # small p-value -> strong evidence to *reject* H0
-    print(ks_result.statistic_location)
-    print(ks_result.statistic_sign)
+
+    mw_result = mannwhitneyu(ideal_experiment_data, noisy_experiment_data)
+    print(type(mw_result))
+    print(mw_result.pvalue)
 
 
 if __name__ == '__main__':
