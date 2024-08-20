@@ -110,7 +110,7 @@ def main_experiments():
 def run_testing_experiments():
     """
     Runs the experiments in 2 environments and performs
-        a 2-sample KS test
+        a 2-sample KS test: Statistical Assertion
     """
     backend = FakeTorino()
     transpiled_circuit = get_transpiled_grover_circuit(backend)
