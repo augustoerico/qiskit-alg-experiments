@@ -13,6 +13,11 @@ from qiskit_aer import AerSimulator
 
 from qiskit.result.result import Result
 
+from scipy.stats import ks_2samp, mannwhitneyu
+
+from numpy import array
+
+
 def phase_oracle_solutions(oracle: PhaseOracle):
     # generate all binaries from 0 to num_qubits
     num_qubits = oracle.num_qubits
@@ -45,6 +50,7 @@ def test_phase_oracle_solutions():
     print(good_states)
 
 
+@utils.print_exec_time
 def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     """
     Returns the quantum circuit target for the experiment
@@ -68,6 +74,7 @@ def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     return transpiled_circuit
 
 
+@utils.print_exec_time
 def run_experiment(
         experiment_id: str,
         backend: Backend,
@@ -103,10 +110,60 @@ def main_experiments():
     }
     run_experiment(**noisy_experiment)
 
+@utils.print_exec_time
+def run_testing_experiments():
+    """
+    Runs the experiments in 2 environments and performs
+        a 2-sample KS test: Statistical Assertion
+    """
+    backend = FakeTorino()
+    transpiled_circuit = get_transpiled_grover_circuit(backend)
+
+    simulator = AerSimulator.from_backend(backend)
+    simulator.set_options(method='statevector', noise_model=None)
+    ideal_experiment = {
+        'experiment_id': 'ideal',
+        'transpiled_circuit': transpiled_circuit,
+        'backend': simulator
+    }
+    ideal_result = run_experiment(**ideal_experiment)
+    ideal_result_counts: dict = ideal_result.get_counts()
+
+    noisy_experiment = {
+        'experiment_id': 'noisy',
+        'transpiled_circuit': transpiled_circuit,
+        'backend': backend
+    }
+    noisy_result = run_experiment(**noisy_experiment)
+    noisy_result_counts: dict = noisy_result.get_counts()
+
+    observed_outputs = set(
+        list(ideal_result_counts.keys()) +
+        list(noisy_result_counts.keys())
+    )
+
+    ideal_experiment_data: list[int] = []
+    noisy_experiment_data: list[int] = []
+    for o in observed_outputs:
+        ideal_experiment_data.append(ideal_result_counts.get(o, 0))
+        noisy_experiment_data.append(noisy_result_counts.get(o, 0))
+    ideal_experiment_data = array(ideal_experiment_data)
+    noisy_experiment_data = array(noisy_experiment_data)
+
+    # H0: the 2 samples are drawn from the same distribution
+    ks_result = ks_2samp(ideal_experiment_data, noisy_experiment_data)
+    print(type(ks_result))
+    print(ks_result.pvalue) # small p-value -> strong evidence to *reject* H0
+
+    mw_result = mannwhitneyu(ideal_experiment_data, noisy_experiment_data)
+    print(type(mw_result))
+    print(mw_result.pvalue)
+
 
 if __name__ == '__main__':
     # main()
     # test_phase_oracle_solutions()
     # main_with_noise()
-    main_experiments()
+    # main_experiments()
+    run_testing_experiments()
     pass

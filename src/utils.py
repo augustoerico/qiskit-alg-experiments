@@ -1,6 +1,8 @@
 """
 Helper functions
 """
+from time import time
+
 import simplejson
 from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
@@ -53,3 +55,12 @@ def simulate(
         .result() \
         .get_counts()
     return counts
+
+def print_exec_time(function):
+    def wrapper(*args, **kwargs):
+        start_time = time()
+        result = function(*args, **kwargs)
+        elapsed_time = time() - start_time
+        print(f'{function.__name__}: {elapsed_time}s')
+        return result
+    return wrapper
