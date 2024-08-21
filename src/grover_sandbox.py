@@ -16,6 +16,7 @@ from qiskit.result.result import Result
 from scipy.stats import ks_2samp, mannwhitneyu, shapiro
 
 from numpy import array
+from experiments_engine import run_experiment
 
 
 def phase_oracle_solutions(oracle: PhaseOracle):
@@ -75,23 +76,6 @@ def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
 
 
 @utils.print_exec_time
-def run_experiment(
-        experiment_id: str,
-        backend: Backend,
-        transpiled_circuit: QuantumCircuit):
-
-    result: Result = backend \
-        .run(transpiled_circuit, shots=4096) \
-        .result()
-
-    utils.plot(result.get_counts(), experiment_id)
-    utils.write_results_json(result.get_counts(), experiment_id)
-    utils.write_results_csv(result.get_counts(), experiment_id)
-
-    return result
-
-
-@utils.print_exec_time
 def run_testing_experiments():
     """
     Runs the experiments in 2 environments and performs
@@ -103,7 +87,7 @@ def run_testing_experiments():
     simulator = AerSimulator.from_backend(backend)
     simulator.set_options(method='statevector', noise_model=None)
     ideal_experiment = {
-        'experiment_id': 'ideal',
+        'experiment_id': 'grover.ideal',
         'transpiled_circuit': transpiled_circuit,
         'backend': simulator
     }
@@ -111,7 +95,7 @@ def run_testing_experiments():
     ideal_result_counts: dict = ideal_result.get_counts()
 
     noisy_experiment = {
-        'experiment_id': 'noisy',
+        'experiment_id': 'grover.noisy',
         'transpiled_circuit': transpiled_circuit,
         'backend': backend
     }
