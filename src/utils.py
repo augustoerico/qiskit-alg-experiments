@@ -62,7 +62,7 @@ def print_exec_time(function):
     def wrapper(*args, **kwargs):
         start_time = time()
         result = function(*args, **kwargs)
-        elapsed_time = time() - start_time
+        elapsed_time = round(time() - start_time)
         print(f'{function.__name__}: {elapsed_time}s')
         return result
     return wrapper
