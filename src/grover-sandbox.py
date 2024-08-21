@@ -86,6 +86,7 @@ def run_experiment(
 
     utils.plot(result.get_counts(), experiment_id)
     utils.write_results_json(result.get_counts(), experiment_id)
+    utils.write_results_csv(result.get_counts(), experiment_id)
 
     return result
 

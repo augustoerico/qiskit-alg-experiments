@@ -133,3 +133,4 @@ venv.bak/
 #   - result counts JSON
 *.png
 *.json
+*.csv
