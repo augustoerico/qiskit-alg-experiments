@@ -16,6 +16,7 @@ from qiskit.result.result import Result
 from scipy.stats import ks_2samp, mannwhitneyu, shapiro
 
 from numpy import array
+from experiments_engine import run_experiment
 
 
 def phase_oracle_solutions(oracle: PhaseOracle):
@@ -72,23 +73,6 @@ def get_transpiled_grover_circuit(backend: Backend) -> QuantumCircuit:
     utils.draw(transpiled_circuit, f'grover.{backend.name}')
     
     return transpiled_circuit
-
-
-@utils.print_exec_time
-def run_experiment(
-        experiment_id: str,
-        backend: Backend,
-        transpiled_circuit: QuantumCircuit):
-
-    result: Result = backend \
-        .run(transpiled_circuit, shots=4096) \
-        .result()
-
-    utils.plot(result.get_counts(), experiment_id)
-    utils.write_results_json(result.get_counts(), experiment_id)
-    utils.write_results_csv(result.get_counts(), experiment_id)
-
-    return result
 
 
 @utils.print_exec_time
