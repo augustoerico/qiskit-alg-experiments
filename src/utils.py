@@ -4,10 +4,8 @@ Helper functions
 from time import time
 
 import simplejson
-from qiskit import QuantumCircuit, transpile
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
+from qiskit import QuantumCircuit
 from qiskit.visualization import plot_histogram
-from qiskit_ibm_runtime.ibm_backend import Backend
 
 
 def draw(circuit: QuantumCircuit, file_name: str):
@@ -44,17 +42,21 @@ def write_results_json(counts: dict, file_name: str):
     with open(file_name, 'w', encoding='utf-8') as file:
         simplejson.dump(counts, fp=file, indent=4, sort_keys=True)
 
-def simulate(
-        circuit: QuantumCircuit,
-        backend: Backend,
-        shots = 1024):
-    transpiled_circuit = transpile(circuit, backend=backend, optimization_level=2)
-    draw(transpiled_circuit, 'transpiled')
-    counts = backend \
-        .run(transpiled_circuit, shots=shots) \
-        .result() \
-        .get_counts()
-    return counts
+def write_results_csv(counts: dict, file_name: str):
+    """
+    write counts into file as CSV
+    """
+    header = 'cbits,counts\n'
+    lines = ''.join([
+        f'{cbits},{count}\n'
+        for cbits, count in sorted(counts.items())
+    ])
+    content = header + lines
+    
+    file_name = f'{file_name}.counts.csv'
+    with open(file_name, 'w', encoding='utf-8') as file:
+        file.write(content)
+
 
 def print_exec_time(function):
     def wrapper(*args, **kwargs):

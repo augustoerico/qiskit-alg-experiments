@@ -13,7 +13,7 @@ from qiskit_aer import AerSimulator
 
 from qiskit.result.result import Result
 
-from scipy.stats import ks_2samp, mannwhitneyu
+from scipy.stats import ks_2samp, mannwhitneyu, shapiro
 
 from numpy import array
 
@@ -86,29 +86,10 @@ def run_experiment(
 
     utils.plot(result.get_counts(), experiment_id)
     utils.write_results_json(result.get_counts(), experiment_id)
+    utils.write_results_csv(result.get_counts(), experiment_id)
 
     return result
 
-
-def main_experiments():
-    backend = FakeTorino()
-    transpiled_circuit = get_transpiled_grover_circuit(backend)
-
-    simulator = AerSimulator.from_backend(backend)
-    simulator.set_options(method='statevector', noise_model=None)
-    ideal_experiment = {
-        'experiment_id': 'ideal',
-        'transpiled_circuit': transpiled_circuit,
-        'backend': simulator
-    }
-    run_experiment(**ideal_experiment)
-
-    noisy_experiment = {
-        'experiment_id': 'noisy',
-        'transpiled_circuit': transpiled_circuit,
-        'backend': backend
-    }
-    run_experiment(**noisy_experiment)
 
 @utils.print_exec_time
 def run_testing_experiments():
@@ -149,6 +130,11 @@ def run_testing_experiments():
         noisy_experiment_data.append(noisy_result_counts.get(o, 0))
     ideal_experiment_data = array(ideal_experiment_data)
     noisy_experiment_data = array(noisy_experiment_data)
+    
+    # test if it's a normal distribution
+    # Shapiro H0: the data is normally distributed
+    _, pvalue = shapiro(ideal_experiment_data)
+    print(f'Shapiro p-value: {pvalue}') # small p-value -> reject H0 -> not normal dist.
 
     # H0: the 2 samples are drawn from the same distribution
     ks_result = ks_2samp(ideal_experiment_data, noisy_experiment_data)
@@ -161,9 +147,6 @@ def run_testing_experiments():
 
 
 if __name__ == '__main__':
-    # main()
     # test_phase_oracle_solutions()
-    # main_with_noise()
-    # main_experiments()
     run_testing_experiments()
     pass
