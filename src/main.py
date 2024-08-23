@@ -2,7 +2,7 @@ from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.fake_provider.backends import FakeTorino
 
 from scenario import Scenario
-from grover_experiment import GroverExperiment
+from grover_stat_experiment import GroverStatExperiment
 
 def main():
     reference_backend = FakeTorino()
@@ -14,7 +14,7 @@ def main():
         Scenario(scenario_id='noisy', backend=noisy_backend),
         Scenario(scenario_id='ideal', backend=ideal_backend)
     ]
-    grover_experiment = GroverExperiment(
+    grover_experiment = GroverStatExperiment(
         experiment_id='grover2',
         reference_backend=reference_backend,
         scenarios=scenarios)

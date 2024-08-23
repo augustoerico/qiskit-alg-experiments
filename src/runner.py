@@ -2,32 +2,23 @@ from typing import TypedDict
 
 from qiskit import QuantumCircuit
 from qiskit.result.result import Result
+from qiskit_ibm_runtime.ibm_backend import Backend
 
 from scenario import Scenario
 from utils import print_exec_time
 
-class RunnerResult(TypedDict):
-    result: Result
-    scenario: Scenario
+class ScenarioRunner:
 
-class Runner:
-
-    def __init__(self, transpiled_circuit: QuantumCircuit):
-        self._transpiled_circuit = transpiled_circuit
+    def __init__(self, circuit: QuantumCircuit, scenario: Scenario):
+        self.circuit = circuit
+        self.scenario = scenario
     
     @print_exec_time
-    def _run_one(self, scenario: Scenario):
-        # [TODO] raise exception if it can't run a scenario for the given backend
-        #   i.e. the ideal backend is too different from the real backend
-        backend = scenario._backend
+    def run(self) -> Result:
+        backend = self.scenario['backend']
+        shots = self.scenario['shots']
         
-        result: Result = backend \
-            .run(self._transpiled_circuit, shots=4096) \
+        job_result: Result = backend \
+            .run(self.circuit, shots=shots) \
             .result()
-        
-        runner_result: RunnerResult = {
-            'result': result,
-            'scenario': scenario
-        }
-
-        return runner_result
+        return job_result

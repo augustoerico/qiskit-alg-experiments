@@ -1,16 +1,9 @@
 from unittest import TestCase, main
 
+from mock_result import MockResult
 from statistical_assertions import \
     assertIsNormalShapiro, assertSameDistributionKomogorov, \
     assertSameDistributionMannWhitneyU
-
-class MockResult:
-
-    def __init__(self, counts: dict) -> None:
-        self.counts = counts
-
-    def get_counts(self):
-        return self.counts
 
 
 class TestStatisticalAssertions(TestCase):
