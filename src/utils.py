@@ -40,7 +40,9 @@ def write_results_json(counts: dict, file_name: str):
     """
     file_name = f'{file_name}.counts.json'
     with open(file_name, 'w', encoding='utf-8') as file:
-        simplejson.dump(counts, fp=file, indent=4, sort_keys=True)
+        simplejson.dump(
+            counts, default=lambda o: o.__dict__,
+            fp=file, indent=4, sort_keys=True)
 
 def write_results_csv(counts: dict, file_name: str):
     """

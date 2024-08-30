@@ -1,8 +1,5 @@
-from typing import TypedDict
-
 from qiskit import QuantumCircuit
 from qiskit.result.result import Result
-from qiskit_ibm_runtime.ibm_backend import Backend
 
 from scenario import Scenario
 from utils import print_exec_time
@@ -16,7 +13,7 @@ class ScenarioRunner:
     @print_exec_time
     def run(self) -> Result:
         backend = self.scenario['backend']
-        shots = self.scenario['shots']
+        shots = self.scenario.get('shots', 1024)
         
         job_result: Result = backend \
             .run(self.circuit, shots=shots) \

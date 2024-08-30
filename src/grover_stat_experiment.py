@@ -7,9 +7,13 @@ from qiskit_ibm_runtime.ibm_backend import Backend
 
 import utils
 from scenario import Scenario
+from runner import ScenarioRunner
 from statistical_test import StatisticalTestsResultsByType
 
 from folders import create_artifacts_folder
+
+from simplejson import dumps as json_dumps
+from dictfier import dictfy
 
 
 class GroverStatExperiment:
@@ -47,23 +51,18 @@ class GroverStatExperiment:
         return transpiled_circuit
 
     def run_scenarios(self):
-        # runner = ScenarioRunner(
-        #     transpiled_circuit=self.get_transpiled_circuit())
-        # runner_results = [
-        #     runner.run()
-        #     for s in self.scenarios
-        # ]
-
         artifacts_folder_path = create_artifacts_folder()
         circuit_draw_file_name = f'{artifacts_folder_path}/{self.id}'
         utils.draw(self.transpiled_circuit, circuit_draw_file_name)
-        # [
-        #     self.generate_scenario_artifacts(r)
-        #     for r in runner_results
-        # ]
 
-        # self.scenarios_results = stat_test_results(
-        #     runner_results[0]['result'], runner_results[1]['result'])
+        for scenario in self.scenarios:
+            runner = ScenarioRunner(
+                circuit=self.transpiled_circuit,
+                scenario=scenario)
+            runner_results = runner.run()
+            results_file_name = f'{artifacts_folder_path}/scenario-{scenario["id"]}'
+            utils.write_results_json(runner_results, results_file_name)
+
 
     def generate_scenario_artifacts(
             self, runner_result: StatisticalTestsResultsByType):
