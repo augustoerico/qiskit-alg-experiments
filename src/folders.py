@@ -3,9 +3,9 @@ from os import listdir
 from pathlib import Path
 
 
-def create_parent_folder() -> str:
+def create_parent_folder(experiment_id: str) -> str:
     today = date.today().isoformat()
-    path = f'experiments/{today}'
+    path = f'experiments/{today}/{experiment_id}'
     Path(path).mkdir(parents=True, exist_ok=True)
     return path
 
@@ -22,8 +22,8 @@ def create_run_folder(path: str) -> str:
     return path
 
 
-def create_artifacts_folder():
-    parent_folder_path = create_parent_folder()
+def create_artifacts_folder(experiment_id: str):
+    parent_folder_path = create_parent_folder(experiment_id)
     run_folder_path = create_run_folder(parent_folder_path)
     return run_folder_path
 

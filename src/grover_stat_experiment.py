@@ -51,7 +51,7 @@ class GroverStatExperiment:
         return transpiled_circuit
 
     def run_scenarios(self):
-        artifacts_folder_path = create_artifacts_folder()
+        artifacts_folder_path = create_artifacts_folder(self.id)
         circuit_draw_file_name = f'{artifacts_folder_path}/{self.id}'
         utils.draw(self.transpiled_circuit, circuit_draw_file_name)
 
