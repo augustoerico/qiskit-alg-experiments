@@ -1,8 +1,8 @@
-from typing import TypedDict
+from typing import TypedDict, Tuple
 
 from numpy import float64, array as np_array
 from qiskit.result.result import Result
-from scipy.stats import shapiro, ks_2samp, mannwhitneyu
+from scipy.stats import chi2_contingency
 
 
 class StatisticalTestResult(TypedDict):
@@ -11,36 +11,37 @@ class StatisticalTestResult(TypedDict):
 
 
 class StatisticalTestsResultsByType(TypedDict):
-    shapiro_wilk: StatisticalTestResult
-    kolmovorog_smirnov: StatisticalTestResult
-    mann_whitney_u: StatisticalTestResult
+    chi2_contingency: StatisticalTestResult
 
 
-def stat_test_results(result_1: Result, result_2: Result) \
-            -> StatisticalTestsResultsByType:
-    result_1_counts: dict = result_1.get_counts()
-    result_2_counts: dict = result_2.get_counts()
+def results_to_data_arrays(
+    expected_result: Result, actual_result: Result) -> Tuple:
+    expected_counts: dict = expected_result.get_counts()
+    actual_counts: dict = actual_result.get_counts()
     observed_outputs = set(
-        list(result_1_counts.keys()) +
-        list(result_2_counts.keys())
+        list(expected_counts.keys()) +
+        list(actual_counts.keys())
     )
 
-    result_1_data: list[int] = []
-    result_2_data: list[int] = []
+    expected_data: list[int] = []
+    actual_data: list[int] = []
     for o in observed_outputs:
-        result_1_data.append(result_1_counts.get(o, 0))
-        result_2_data.append(result_2_counts.get(o, 0))
-    result_1_data = np_array(result_1_data)
-    result_2_data = np_array(result_2_data)
+        expected_data.append(expected_counts.get(o, 0))
+        actual_data.append(actual_counts.get(o, 0))
+    expected_data = np_array(expected_data)
+    actual_data = np_array(actual_data)
 
-    shapiro_result = shapiro(result_1_data)
-    ks_test_result = ks_2samp(result_1_data, result_2_data)
-    mw_result = mannwhitneyu(result_1_data, result_2_data)
+    return expected_data, actual_data
 
+
+def stat_test_results(expected_result: Result, actual_result: Result) \
+            -> StatisticalTestsResultsByType:
+    expected_data, actual_data = results_to_data_arrays(
+            expected_result, actual_result)
+    
+    chi2_test_result = chi2_contingency([expected_data, actual_data])
     stat_test_results = {
-        "shapiro_wilk": shapiro_result,
-        "kolmogorov_smirnov": ks_test_result,
-        "mann_whitney_u": mw_result
+        "chi2_contingency": chi2_test_result,
     }
 
     return stat_test_results
