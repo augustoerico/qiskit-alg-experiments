@@ -134,3 +134,6 @@ venv.bak/
 *.png
 *.json
 *.csv
+
+# transpiler plugin
+qiskit-qubit-reuse
