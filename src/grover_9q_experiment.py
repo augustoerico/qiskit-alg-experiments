@@ -70,12 +70,10 @@ class Grover9qExperiment:
 
 
 def main():
-    from os import environ
     from qiskit_aer import AerSimulator
-    from qiskit_ibm_runtime import QiskitRuntimeService
-    from qiskit_ibm_runtime.fake_provider.backends import FakeTorino
+    from qiskit_ibm_runtime.fake_provider.backends import FakeSherbrooke
 
-    reference_backend = FakeTorino()
+    reference_backend = FakeSherbrooke()
 
     noisy_backend = reference_backend
     ideal_backend = AerSimulator.from_backend(reference_backend)
