@@ -12,8 +12,7 @@ from statistical_test import StatisticalTestsResultsByType
 
 from folders import create_artifacts_folder
 
-from simplejson import dumps as json_dumps
-from dictfier import dictfy
+from qiskit.qasm3 import dump as qasm3_dump
 
 
 class GroverStatExperiment:
@@ -53,15 +52,22 @@ class GroverStatExperiment:
     def run_scenarios(self):
         artifacts_folder_path = create_artifacts_folder(self.id)
         circuit_draw_file_name = f'{artifacts_folder_path}/{self.id}'
-        utils.draw(self.transpiled_circuit, circuit_draw_file_name)
+
+        circuit = self.transpiled_circuit
+        circuit_qasm_file_name = f'{artifacts_folder_path}/{self.id}.qasm'
+        
+        with open(circuit_qasm_file_name, 'w', encoding='utf-8') as file:
+            qasm3_dump(circuit, file)
+
+        utils.draw(circuit, circuit_draw_file_name)
 
         for scenario in self.scenarios:
             runner = ScenarioRunner(
-                circuit=self.transpiled_circuit,
+                circuit=circuit,
                 scenario=scenario)
             runner_results = runner.run()
             results_file_name = f'{artifacts_folder_path}/scenario-{scenario["id"]}'
-            utils.write_results_json(runner_results, results_file_name)
+            utils.write_job_results_json(runner_results, results_file_name)
 
 
     def generate_scenario_artifacts(
@@ -69,6 +75,6 @@ class GroverStatExperiment:
         counts = runner_result['result'].get_counts()
         scenario = runner_result['scenario']
         file_name = f'{self.id}.{scenario.id}'
-        utils.write_results_json(counts, file_name)
+        utils.write_job_results_json(counts, file_name)
         utils.write_results_csv(counts, file_name)
         utils.plot(counts, file_name)

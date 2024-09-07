@@ -34,11 +34,11 @@ def plot(counts: dict, file_name: str, legend = None):
     )
 
 
-def write_results_json(counts: dict, file_name: str):
+def write_job_results_json(counts: dict, file_name: str):
     """
     write counts into file as JSON
     """
-    file_name = f'{file_name}.counts.json'
+    file_name = f'{file_name}.job-results.json'
     with open(file_name, 'w', encoding='utf-8') as file:
         simplejson.dump(
             counts, default=lambda o: o.__dict__,
