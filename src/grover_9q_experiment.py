@@ -79,8 +79,8 @@ def main():
     ideal_backend = AerSimulator.from_backend(reference_backend)
     ideal_backend.set_options(method='statevector', noise_model=None)
     scenarios = [
-        Scenario(id='noisy', backend=noisy_backend),
-        Scenario(id='ideal', backend=ideal_backend)
+        Scenario(id='noisy', backend=noisy_backend, shots=10000),
+        Scenario(id='ideal', backend=ideal_backend, shots=10000)
     ]
     grover_experiment = Grover9qExperiment(
         id='grover-9q',
